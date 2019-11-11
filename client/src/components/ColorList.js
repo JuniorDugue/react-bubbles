@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import axios from "axios";
+// import axios from "axios";
+import {axiosWithAuth} from "../utils/axiosWithAuth";
 
 const initialColor = {
   color: "",
@@ -21,10 +22,48 @@ const ColorList = ({ colors, updateColors }) => {
     // Make a put request to save your updated color
     // think about where will you get the id from...
     // where is is saved right now?
+    axiosWithAuth()
+    .put(`colors/${colorToEdit.id}`, colorToEdit)
+    .then(res => {
+      const newColors = colors.map(x => {
+        if (x.id === colorToEdit.id){
+          return colorToEdit;
+        } else {
+          return x;
+        }
+      })
+      updateColors(newColors);
+      setEditing(false);
+      setColorToEdit({initialColor})
+    })
+    .catch(err => {
+      console.log("Error: ", err);
+    })
   };
+
+  const reload = () => {
+    axiosWithAuth()
+      .get("colors")
+      .then(res => {
+        updateColors(res.data);
+      })
+      .catch(err => {
+        console.log("Error: ", err);
+      })
+  }
 
   const deleteColor = color => {
     // make a delete request to delete this color
+    axiosWithAuth()
+      .delete(`colors/${color.id}`)
+      .then(res => {
+        setColorToEdit(initialColor);
+        setEditing(false);
+        reload();
+      })
+      .catch(err => {
+        console.log("Error: ", err);
+      })
   };
 
   return (
@@ -82,6 +121,7 @@ const ColorList = ({ colors, updateColors }) => {
       )}
       <div className="spacer" />
       {/* stretch - build another form here to add a color */}
+      {/* <form action=""></form> */}
     </div>
   );
 };
